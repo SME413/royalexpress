@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سفارشات</title>
+    <link rel="stylesheet" href="costumer-app.css">
+</head>
+<body>
+    <nav>
+        <h1>royal express</h1>
+    </nav>
+    <aside>
+        <a href="#">خانه</a>
+        <a href="فاکتورهای ذخیره شده.html">فاکتورها</a>
+    </aside>
+    <main>
+        <div class="container">
+            <form class="input-container">
+                <div class="form-group">
+                    <label for="name">نام و نام خانوادگی</label>
+                    <input type="text" id="name" required>
+                </div>
+                <br>
+                <div class="form-group">
+                    <label for="tel-num">شماره تماس</label>
+                    <input type="tel" id="tel-num" required maxlength="11">
+                </div>
+                <br>
+                <div class="form-group">
+                    <label for="explenation">توضیحات</label>
+                    <textarea id="explenation"></textarea>
+                </div>
+                <br>
+                <div class="form-group">
+                    <label for="delivery-time">زمان تحویل</label>
+                    <input type="text" id="delivery-time" placeholder="ماه/روز">
+                </div>
+
+                <div class="checkbox-group">
+                    <h2>انتخاب خدمات</h2>
+                    <!-- NOTE: only the VISUAL order changed here (price is now last).
+                         IDs stay the same so all logic keeps working. -->
+                    <input type="text" id="input" placeholder="سفارش..."> 
+                    <input type="number" id="product-num" placeholder="تعداد"> 
+                    <input type="text" id="extra-product" placeholder="توضیحات">
+                    <input type="number" id="product-price" placeholder="قیمت">
+                </div>
+            </form>
+
+            <div class="outcome">
+                <h2 class="title">خشکشویی رویال اکسپرس</h2>
+                <h2>فاکتور مشتری</h2>
+                <h3 id="today"></h3>
+                <h3 class="h4"></h3>
+                <h3 class="telc"></h3>
+                <p class="explain"></p>
+                <h3 class="deliveryc"></h3>
+
+                <ul class="orderlist">
+                    
+                </ul>
+
+                <div class="total-price-container" id="totalPriceContainer">
+                    <span class="total-label">
+                        <span>💰</span> مجموع قیمت:
+                    </span>
+                    <span class="total-amount" id="totalPriceAmount">
+                        0 <span>تومان</span>
+                    </span>
+                </div>
+
+                <div class="btn-container">
+                    <button class="edit-btn">&#9998;</button>
+                    <button class="delete-btn">&#128465;</button>
+                    <button class="save-btn">&#128194;</button>
+                    <button class="print-btn">ذخیره و پرینت</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const input = document.getElementById('input');
+        const productnum = document.getElementById('product-num');
+        const productprice = document.getElementById('product-price');
+        const extraexplain = document.getElementById('extra-product');
+        const nickname = document.getElementById('name');
+        const telephone = document.getElementById('tel-num');
+        const explenation = document.getElementById('explenation');
+        const deliveryTimeInput = document.getElementById('delivery-time');
+        const orderlist = document.querySelector('.orderlist');
+        const outcomelist = document.querySelector('.outcome');
+        const h4 = document.querySelector('.h4');
+        const tel = document.querySelector('.telc');
+        const explain = document.querySelector('.explain');
+        const deliveryc = document.querySelector('.deliveryc');
+        const btncontainer = document.querySelector('.btn-container');
+        const editbtn = document.querySelector('.edit-btn');
+        const dltbtn = document.querySelector('.delete-btn');
+        const savebtn = document.querySelector('.save-btn');
+        const printbtn = document.querySelector('.print-btn');
+        const totalPriceContainer = document.getElementById('totalPriceContainer');
+        const totalPriceAmount = document.getElementById('totalPriceAmount');
+
+        // ===== DATE/TIME FUNCTIONS =====
+        function getCurrentDateTime() {
+            const now = new Date();
+            const options = {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            };
+            return new Intl.DateTimeFormat('fa-IR', options).format(now);
+        }
+
+        function updateDateTime() {
+            const display = document.getElementById('today');
+            if (display) {
+                display.textContent = `🕐 ${getCurrentDateTime()}`;
+            }
+        }
+
+        function getCurrentPersianYear() {
+            const now = new Date();
+            const parts = new Intl.DateTimeFormat('fa-IR', { year: 'numeric' }).formatToParts(now);
+            const yearPart = parts.find(p => p.type === 'year');
+            return yearPart ? yearPart.value : '';
+        }
+
+        function formatDeliveryDate(inputValue) {
+            if (!inputValue) return '';
+            const trimmed = inputValue.trim();
+            const parts = trimmed.split('/');
+            if (parts.length === 2) {
+                const year = getCurrentPersianYear();
+                return `${year}/${parts[0].padStart(2, '0')}/${parts[1].padStart(2, '0')}`;
+            } else if (parts.length === 3) {
+                return trimmed;
+            }
+            return trimmed;
+        }
+
+        function updateTotalPrice() {
+            const items = document.querySelectorAll('.orderlist li');
+            let total = 0;
+            
+            items.forEach(li => {
+                const priceSpan = li.querySelector('.span3');
+                if (priceSpan) {
+                    const price = parseInt(priceSpan.textContent.replace(/,/g, '')) || 0;
+                    total += price;
+                }
+            });
+            
+            if (items.length > 0) {
+                totalPriceContainer.style.display = 'flex';
+                totalPriceAmount.innerHTML = total.toLocaleString() + ' <span>تومان</span>';
+            } else {
+                totalPriceContainer.style.display = 'none';
+            }
+        }
+        
+        nickname.addEventListener('keydown', function(e){
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                h4.innerHTML = "نام مشتری:" + " " + this.value.trim();
+                telephone.focus();
+                updateDateTime();
+            }
+        });
+
+        telephone.addEventListener('keydown', function(e){
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                if(telephone.value.length < 8){
+                    window.alert("شماره تماس باید حداقل 8 رقم باشد");
+                    return;
+                }else{
+                    tel.innerHTML = "شماره تماس:" + " " + this.value.trim();
+                    explenation.focus();
+                }
+            }
+        });
+
+        explenation.addEventListener('keydown', function(e){
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                explain.innerHTML = "توضیحات:" + " " + this.value;
+                deliveryTimeInput.focus();
+            }
+            if(e.key === 'Shift'){
+                deliveryTimeInput.focus();
+            }
+        });
+
+        deliveryTimeInput.addEventListener('keydown', function(e){
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                const formattedDate = formatDeliveryDate(this.value);
+                
+                if(formattedDate){
+                    deliveryc.innerHTML = "زمان تحویل:" + " " + formattedDate;
+                } else {
+                    deliveryc.innerHTML = "";
+                }
+                
+                input.focus();
+            }
+        });
+
+        // ===== PRODUCT DATABASE =====
+        const codedatabase = {
+            "1": {text: "کت شلوار", price: "300000"},
+            "2": {text: "کت", price: "200000"},
+            "3": {text: "اورکت", price: "300000"},
+            "4": {text: "کاپشن", price: "300000"},
+            "5": {text: "پیراهن", price: "150000"},
+            "6": {text: "شلوار", price: "150000"},
+            "7": {text: "لباس زنانه مجلسی", price: "400000"},
+            "8": {text: "مانتو", price: "200000"},
+            "9": {text: " (تک نفره) پتو", price: "200000"},
+            "10": {text: " (دو نفره) پتو", price: "250000"},
+            "11": {text: "روتختی (تک نفره)", price: "250000"},
+            "12": {text: "روتختی (دو نفره)", price: "300000"},
+            "13": {text: " (6 متری) روفرشی", price: "200000"},
+            "14": {text: " (9 متری) روفرشی", price: "250000"},
+            "15": {text: " (12 متری) روفرشی", price: "300000"},
+            "16": {text: "پرده تور (متر مربع)", price: "30000"},
+            "17": {text: "پرده مخمل (متر مربع) ", price: "50000"},
+            "18": {text: "پالتو", price: "300000"},
+            "19": {text: "کتونی", price: "300000"},
+            "20": {text: "رنگرزی"},
+            "کت شلوار": {text: "کت شلوار", price: "300000"},
+            "کت": {text: "کت", price: "200000"},
+            "اورکت": {text: "اورکت", price: "300000"},
+            "کاپشن": {text: "کاپشن", price: "300000"},
+            "پیراهن": {text: "پیراهن", price: "150000"},
+            "شلوار": {text: "شلوار", price: "150000"},
+            "لباس زنانه مجلسی": {text: "لباس زنانه مجلسی", price: "400000"},
+            "مانتو": {text: "مانتو", price: "200000"},
+            "(تک نفره) پتو": {text: " (تک نفره) پتو", price: "200000"},
+            "(دو نفره) پتو": {text: " (دو نفره) پتو", price: "250000"},
+            "روتختی (تک نفره)": {text: "روتختی (تک نفره)", price: "250000"},
+            "روتختی (دو نفره)": {text: "روتختی (دو نفره)", price: "300000"},
+            "(6 متری) روفرشی": {text: " (6 متری) روفرشی", price: "200000"},
+            "(9 متری) روفرشی": {text: " (9 متری) روفرشی", price: "250000"},
+            "(12 متری) روفرشی": {text: " (12 متری) روفرشی", price: "300000"},
+            "پرده تور (متر مربع)": {text: "پرده تور (متر مربع)", price: "30000"},
+            "پرده مخمل (متر مربع)": {text: "پرده مخمل (متر مربع) ", price: "50000"},
+            "پالتو": {text: "پالتو", price: "300000"},
+            "کتونی": {text: "کتونی", price: "300000"},
+            "رنگرزی": {text: "رنگرزی"},
+        };
+
+        // ===== IRONING PRICE DATABASE =====
+        const ironingPrices = {
+            "کت شلوار": 250000,
+            "کت": 250000,
+            "اورکت": 250000,
+            "کاپشن": 250000,
+            "پیراهن": 250000,
+            "شلوار": 250000,
+            "لباس زنانه مجلسی": 250000,
+            "مانتو": 250000,
+            " (تک نفره) پتو": 250000,
+            " (دو نفره) پتو": 250000,
+            "روتختی (تک نفره)": 250000,
+            "روتختی (دو نفره)": 250000,
+            " (6 متری) روفرشی": 250000,
+            " (9 متری) روفرشی": 250000,
+            " (12 متری) روفرشی": 250000,
+            "پرده تور (متر مربع)": 250000,
+            "پرده مخمل (متر مربع) ": 250000,
+            "پالتو": 250000,
+        };
+
+        const DEFAULT_IRONING_PRICE = 250000;
+
+        // ===== IRONING DETECTION =====
+        // Only the exact substring "اتو" triggers the ironing price.
+        function detectIroning(text) {
+            if (!text) return false;
+            return text.toString().includes('اتو');
+        }
+
+        // ===== AUTO-COMPLETE "ا" → "اتو" =====
+        // If the user typed just "ا" (with optional whitespace) and pressed Enter,
+        // expand it to "اتو". Works in the item's description field.
+        function expandIroningShorthand(field) {
+            if (!field) return;
+            const val = field.value.trim();
+            if (val === 'ا' || val === 'ات') {
+                field.value = 'اتو';
+            }
+        }
+
+        // ===== PRICE CALCULATION =====
+        function getUnitPriceForProduct(productName) {
+            if (!productName) return 0;
+
+            const isIroning = detectIroning(extraexplain.value);
+            const baseInfo = codedatabase[productName];
+
+            if (isIroning) {
+                if (ironingPrices[productName] !== undefined) {
+                    return ironingPrices[productName];
+                }
+                return DEFAULT_IRONING_PRICE;
+            }
+
+            if (baseInfo && baseInfo.price) {
+                return parseInt(baseInfo.price) || 0;
+            }
+            return currentmultiplier || 0;
+        }
+
+        function refreshProductPrice() {
+            const qty = parseInt(productnum.value) || 0;
+            if (qty <= 0) return;
+
+            const unit = getUnitPriceForProduct(input.value);
+            if (unit > 0) {
+                productprice.value = qty * unit;
+            }
+        }
+
+        productnum.disabled = true;
+        productprice.disabled = true;
+        extraexplain.disabled = true;
+
+        let currentmultiplier = 0;
+
+        input.addEventListener('keydown', function(e){
+            if(e.key === 'Enter'){
+                const inputval = this.value.trim();
+                
+                let found = false;
+
+                for (const [code, info] of Object.entries(codedatabase)){
+                    if(inputval === code || inputval === info.text){
+                    
+                    this.value = info.text;
+                    currentmultiplier = info.price || 0;
+
+                    productnum.disabled = false;
+                    productprice.disabled = false;
+                    extraexplain.disabled = false;
+                    productnum.focus();
+                    found = true;
+                    break;
+                    }
+                }
+                if(!found){
+                    currentmultiplier = 0;
+                    productnum.disabled = false;
+                    productprice.disabled = false;
+                    extraexplain.disabled = false;
+                    productnum.focus();
+                }
+            }
+        });
+
+        // ===== NEW TAB ORDER: product → qty → extra → price =====
+        productnum.addEventListener('input', function (){
+            if (currentmultiplier > 0 || input.value) {
+                refreshProductPrice();
+            }
+        });
+
+        productnum.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                extraexplain.focus();   // was: productprice.focus()
+            }
+        });
+
+        // ===== EXTRA FIELD: handles Enter (auto-complete + add item) =====
+        extraexplain.addEventListener('input', function(){
+            // Live ironing detection: refresh price as the user types "اتو"
+            refreshProductPrice();
+        });
+
+        extraexplain.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter'){
+                e.preventDefault();
+
+                // 1) Auto-complete: "ا" (or "ات") → "اتو"
+                expandIroningShorthand(this);
+
+                // 2) Make sure the price is up to date after the auto-complete
+                refreshProductPrice();
+
+                // 3) If the user typed a product name inside the extra field,
+                //    replace it with its canonical text (existing behavior).
+                const explainval = this.value.trim();
+                if(codedatabase[explainval]){
+                    const info = codedatabase[explainval];
+                    this.value = info.text;
+                }
+
+                // 4) If everything is filled, add the row
+                if(input.value && productnum.value && productprice.value){
+                    const li = document.createElement('li');
+                    
+                    const baseName = input.value;
+                    const hasIroning = detectIroning(this.value);
+                    const displayName = hasIroning
+                        ? `${baseName} (اتو)`
+                        : baseName;
+
+                    // Do NOT repeat "اتو" in the extra column if the only
+                    // content was the ironing keyword — just show the (اتو)
+                    // suffix on the item name.
+                    let extraText = this.value.trim();
+                    if (hasIroning) {
+                        const stripped = extraText.replace(/اتو/g, '').trim();
+                        extraText = stripped;   // may end up empty
+                    }
+
+                    // if(extraText){
+                    //     li.innerHTML = `
+                    //         <span class="span1">${displayName}</span>
+                    //         <span class="span2">${productnum.value}</span>
+                    //         <span class="span4">${extraText}</span>
+                    //         <span class="span3">${productprice.value}</span>
+                    //     `;
+                    // } else {
+                    //     li.innerHTML = `
+                    //         <span class="span1">${displayName}</span>
+                    //         <span class="span2">${productnum.value}</span>
+                    //         <span class="span3">${productprice.value}</span>
+                    //     `;
+                    // }
+
+                    // orderlist.appendChild(li);
+                    // input.value = "";
+                    // productnum.value = "";
+                    // productprice.value = "";
+                    // extraexplain.value = "";
+                    // btncontainer.style.display = "flex";
+                    productprice.focus();
+                    updateTotalPrice();
+                }
+            }
+        });
+
+        // ===== PRICE FIELD: last in the tab order =====
+        // Enter here (after the user confirms the price) → next item starts.
+        productprice.addEventListener('keydown', function(e) {
+            if(e.key === 'Enter'){
+                e.preventDefault();
+                // If everything is filled, add the item using the current price.
+                if(input.value && productnum.value && productprice.value){
+                    const li = document.createElement('li');
+
+                    const baseName = input.value;
+                    const hasIroning = detectIroning(extraexplain.value);
+                    const displayName = hasIroning
+                        ? `${baseName} (اتو)`
+                        : baseName;
+
+                    let extraText = extraexplain.value.trim();
+                    if (hasIroning) {
+                        const stripped = extraText.replace(/اتو/g, '').trim();
+                        extraText = stripped;
+                    }
+
+                    if(extraText){
+                        li.innerHTML = `
+                            <span class="span1">${displayName}</span>
+                            <span class="span2">${productnum.value}</span>
+                            <span class="span4">${extraText}</span>
+                            <span class="span3">${productprice.value}</span>
+                        `;
+                    } else {
+                        li.innerHTML = `
+                            <span class="span1">${displayName}</span>
+                            <span class="span2">${productnum.value}</span>
+                            <span class="span3">${productprice.value}</span>
+                        `;
+                    }
+
+                    orderlist.appendChild(li);
+                    input.value = "";
+                    productnum.value = "";
+                    productprice.value = "";
+                    extraexplain.value = "";
+                    btncontainer.style.display = "flex";
+                    input.focus();
+                    updateTotalPrice();
+                } else {
+                    // Not everything filled — just move on
+                    extraexplain.focus();
+                }
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if(event.key === 'Delete'){
+                dltbtn.click();
+            }
+        });
+
+        dltbtn.addEventListener('click', () => {
+            const listitems = document.querySelectorAll('li');
+            const existingcheckboxes = document.querySelectorAll('.checkbox');
+
+            if(existingcheckboxes.length === 0){
+                listitems.forEach(li => {
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'checkbox';
+
+                    checkbox.addEventListener('keydown', function(e){
+                        if(e.key === 'Enter'){
+                        checkbox.click();
+                        }
+                    });
+
+                    checkbox.addEventListener('change', function(){
+                        if(this.checked) {
+                            li.remove();
+                            const remainingitems = document.querySelectorAll('li');
+                            if(remainingitems.length === 0){
+                                btncontainer.style.display = 'none';
+                            }
+                            updateTotalPrice();                            
+                        }
+                    });
+                    li.prepend(checkbox);
+                });
+                }else{
+                 existingcheckboxes.forEach(cb => cb.remove());
+             }
+        });
+
+        document.addEventListener('keydown', function(event){
+            if(event.key === 'Insert'){
+                editbtn.click();
+            }
+        });
+
+        editbtn.addEventListener('click', () =>{
+            const editlistitems = document.querySelectorAll('li');
+            const existingcheckboxes = document.querySelectorAll('.editcheckbox');
+
+            if(existingcheckboxes.length === 0){
+                editlistitems.forEach(li => {
+                    const editcheckbox = document.createElement('input');
+                    editcheckbox.type = 'checkbox';
+                    editcheckbox.className = 'editcheckbox';
+                    editcheckbox.style.cursor = 'pointer';
+
+                    li.prepend(editcheckbox);
+
+                    editcheckbox.addEventListener('keydown', function(e){
+                        if(e.key === 'Enter'){
+                        editcheckbox.click();
+                        }
+                    });
+
+                    editcheckbox.addEventListener('change', () => {
+                        if(editcheckbox.checked){
+                            const span1 = li.querySelector('.span1');
+                            const span2 = li.querySelector('.span2');
+                            const span3 = li.querySelector('.span3');
+                            const span4 = li.querySelector('.span4');
+                            
+                            // Strip the "(اتو)" suffix from the name when editing
+                            if(span1) {
+                                let nameVal = span1.textContent;
+                                nameVal = nameVal.replace(/\s*\(اتو\)\s*$/, '');
+                                input.value = nameVal;
+                            }
+                            if(span2) productnum.value = span2.textContent;
+                            if(span3) productprice.value = span3.textContent;
+                            if(span4) extraexplain.value = span4.textContent;
+
+                            // If we stripped "(اتو)" from the name, put "اتو"
+                            // back into the extra field so the price recomputes.
+                            if(span1 && /\(اتو\)\s*$/.test(span1.textContent)){
+                                extraexplain.value = 'اتو';
+                            }
+
+                            li.remove();
+                            input.focus();
+
+                            updateTotalPrice();
+
+                            const remainingeditlistitems = document.querySelectorAll('li');
+                            if(remainingeditlistitems.length === 0){
+                                btncontainer.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            }else{
+                existingcheckboxes.forEach(cb => cb.remove());
+            }
+        });
+
+        document.addEventListener('keydown', function(event){
+            if(event.key === 'Home'){
+                event.preventDefault();
+                savebtn.click();
+            }
+        });
+
+        savebtn.addEventListener('click', () => {
+            const customername = h4.textContent.replace('نام مشتری:', '').trim();
+            const customerPhone = tel.textContent.replace('شماره تماس:', '').trim();
+            const customerDesc = explain.textContent.replace('توضیحات:', '').trim();
+            const customerDelivery = deliveryc.textContent.replace('زمان تحویل:', '').trim();
+
+            const items = [];
+            document.querySelectorAll('.orderlist li').forEach(li=> {
+                const span1 = li.querySelector('.span1');
+                const span2 = li.querySelector('.span2');
+                const span3 = li.querySelector('.span3');
+                const span4 = li.querySelector('.span4');
+
+                const item = {
+                    name: span1 ? span1.textContent : '',
+                    quantity: span2 ? span2.textContent : '',
+                    price: span3 ? span3.textContent : '',
+                    extra: span4 ? span4.textContent : ''
+                };
+                items.push(item);
+            });
+            
+            if(items.length === 0){
+                alert('حداقل یک آیتم به سفارش اضافه کنید');
+                return;
+            }
+
+            const order = {
+                customername: customername || 'مشتری',
+                customerPhone: customerPhone || 'ندارد',
+                customerDesc: customerDesc || 'ندارد',
+                customerDelivery: customerDelivery || 'ندارد',
+                items: items,
+                timestamp: new Date().toLocaleString('fa-IR'),
+                orderid: Date.now()
+            };
+
+            const existingdata = localStorage.getItem('sharedDatas');
+            let datalist = [];
+
+            if(existingdata){
+                try{
+                    datalist = JSON.parse(existingdata);
+                    if(!Array.isArray(datalist)) datalist = [];
+                }
+                catch (e){
+                    datalist = [];
+                }
+            }
+
+            datalist.push(order);
+            localStorage.setItem('sharedDatas', JSON.stringify(datalist));
+
+            h4.textContent = '';
+            tel.textContent = '';
+            explain.textContent = '';
+            deliveryc.textContent = '';
+            orderlist.innerHTML = '';
+            nickname.value = '';
+            telephone.value = '';
+            explenation.value = '';
+            deliveryTimeInput.value = '';
+            nickname.focus();
+            btncontainer.style.display = 'none';
+            totalPriceContainer.style.display = 'none';
+            alert('سفارش با موفقیت ذخیره شد!');
+        });
+
+        document.addEventListener('keydown', function(e){
+            if(e.key === 'End'){
+                printbtn.click();
+            }
+        });
+
+        printbtn.addEventListener('click', () => {
+            window.print();
+            savebtn.click();
+        });
+
+
+        document.addEventListener('keydown', function(event){
+            if(event.key === 'PageDown'){
+
+                event.preventDefault();
+
+                const checkboxes = document.querySelectorAll('.checkbox, .editcheckbox');
+                let currentindex = -1;
+                checkboxes.forEach((cb, index) =>{
+                    if(cb === document.activeElement){
+                        currentindex = index;
+                    }
+                });
+
+                if(currentindex === -1){
+                    checkboxes[0].focus();
+                }else if(currentindex < checkboxes.length - 1) {
+                    checkboxes[currentindex + 1].focus();
+                }else{
+                    checkboxes[0].focus();
+                }
+            }
+
+            if(event.key === 'PageUp'){
+                event.preventDefault();
+
+                const checkboxes = document.querySelectorAll('.checkbox, .editcheckbox');
+                let currentindex = -1;
+                checkboxes.forEach((cb, index) =>{
+                    if(cb === document.activeElement){
+                        currentindex = index;
+                    }
+                });
+
+                if(currentindex === -1){
+                    checkboxes[checkboxes.length - 1].focus();
+                }else if(currentindex > 0) {
+                    checkboxes[currentindex - 1].focus();
+                }
+            }
+        });
+
+        updateTotalPrice();
+        updateDateTime();
+    </script>
+</body>
+</html>

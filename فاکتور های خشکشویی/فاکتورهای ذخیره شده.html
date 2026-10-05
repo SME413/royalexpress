@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فاکتورها</title>
+    <style>
+        :root{
+            --green: #00594e;
+            --silk: #fff6e4;
+            --black: #111808;
+            --coloni: #fff0ba;
+            --peach: #ff7654;
+            --mint: #6beeb1;
+        }
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body{
+            font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+            padding: 20px;
+            background: var(--coloni);
+            min-height: 100vh;
+        }
+        .navbar{
+            background: var(--green);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+            border-radius: 30px;
+            color: var(--silk);
+        }
+        .navbar h1{
+            font-size: 1.8rem;
+        }
+        .navbar a{
+            text-decoration: none;
+            color: var(--silk);
+            padding: 10px;
+            border: 2px solid var(--mint);
+            border-radius: 8px;
+            transition: 0.5s;
+            font-weight: bold;
+        }
+
+        .navbar a:hover{
+            background: var(--mint);
+            color: var(--green);
+        }
+
+        .stats{
+            width: 60%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stats .stats-btn{
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stats span{
+            font-size: 1.1rem;
+        }
+
+        .stats .count{
+            background: var(--mint);
+            padding: 5px 18px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: var(--black);
+        }
+
+        .stats .clear-btn{
+            outline: none;
+            border: none;
+            border: 2px solid var(--peach);
+            background: transparent;
+            color: var(--silk);
+            padding: 10px;
+            border-radius: 14px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: 0.5s;
+            cursor: pointer;
+        }
+
+        .stats .clear-btn:hover{
+            background: var(--peach);
+            cursor: pointer;
+        }
+
+        #searchbar {
+            padding: 10px 15px;
+            border-radius: 14px;
+            border: 2px solid var(--silk);
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--silk);
+            font-size: 1rem;
+            outline: none;
+            min-width: 200px;
+        }
+
+        #searchbar::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        #searchbar:focus {
+            border-color: var(--mint);
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .factor-grid{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .factor-card{
+            background: var(--silk);
+            padding: 18px;
+            border-radius: 16px;
+            height: auto;
+            min-height: 180px;
+            border-right: 5px solid var(--green);
+            margin-right: 10px;
+            transition: all 0.5s ease;
+            display: flex;
+            flex-direction: column;
+            opacity: 1;
+            transform: scale(1);
+            position: relative;
+        }
+
+        /* ===== DELIVERED STATE ===== */
+        .factor-card.delivered{
+            border-right-color: var(--peach);
+            opacity: 0.55;
+        }
+
+        .factor-card.delivered .customer-name,
+        .factor-card.delivered .total-price{
+            text-decoration: line-through;
+            text-decoration-color: var(--peach);
+        }
+
+        /* Small badge on top-left corner of delivered card */
+        .factor-card.delivered::before{
+            content: '✅ تحویل داده شده';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: var(--peach);
+            color: var(--silk);
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+            pointer-events: none;
+        }
+
+        .factor-card.hidden {
+            display: none;
+        }
+
+        .factor-header {
+            border-bottom: 2px dashed var(--coloni);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .factor-header .customer-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--green);
+        }
+
+        .factor-header .customer-phone {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 3px;
+        }
+
+        .factor-header .customer-desc {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 3px;
+            font-style: italic;
+        }
+
+        .factor-header .order-id {
+            font-size: 0.7rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        .factor-items {
+            flex: 1;
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 0.85rem;
+        }
+
+        .factor-items li {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #f0f0f0;
+            gap: 5px;
+        }
+
+        .factor-items li:last-child {
+            border-bottom: none;
+        }
+
+        .factor-items .item-name {
+            font-weight: 500;
+            color: var(--black);
+        }
+
+        .factor-items .item-price {
+            color: var(--peach);
+            font-weight: bold;
+        }
+
+        .factor-items .item-qty {
+            color: #666;
+        }
+
+        .factor-items .item-extra {
+            color: #888;
+            font-size: 0.75rem;
+        }
+
+        .factor-footer {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .factor-footer .total-price {
+            font-weight: bold;
+            color: var(--green);
+            font-size: 1rem;
+        }
+
+        .factor-footer .timestamp {
+            font-size: 0.7rem;
+            color: #aaa;
+        }
+
+        .subbtn {
+            background: var(--mint);
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            outline: none;
+            border: none;
+            border-radius: 50%;
+            position: relative;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .subbtn::before {
+            content: '✓';
+            color: var(--black);
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: .5s;
+        }
+
+        .subbtn:hover {
+            background: var(--green);
+            transform: scale(1.1);
+        }
+
+        .subbtn:hover::before{
+            color: white;
+        }
+
+        .subbtn.delivered {
+            background: var(--peach);
+            color: var(--silk);
+        }
+
+        .subbtn.delivered::before {
+            content: '↺';   /* undo arrow to indicate you can revert */
+            color: var(--silk);
+        }
+
+        .no-data {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 80px 20px;
+            background: white;
+            border-radius: 16px;
+            color: #999;
+            font-size: 1.4rem;
+        }
+
+        .no-data span {
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .highlight {
+            background-color: #ffeb3b;
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 1200px) {
+            .factor-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .factor-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .factor-grid {
+                grid-template-columns: 1fr;
+            }
+            .stats .stats-btn {
+                flex-direction: column;
+                width: 100%;
+            }
+            #searchbar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h1>فاکتورهای ذخیره شده 📋</h1>
+        <div class="stats">
+            <span>📊 تعداد کل فاکتورها: <span class="count" id="factorCount">0</span></span>
+            <span>🕒 آخرین بروزرسانی: <span id="lastUpdate">-</span></span>
+            <div class="stats-btn">
+                <a href="customer-app.html" target="_blank">سفارش جدید ➕</a>
+                <input type="search" id="searchbar" placeholder="جستجو بر اساس نام یا شماره تلفن...">
+                <button class="clear-btn" id="clearAllBtn">🗑️ حذف همه</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="factor-grid" id="factorGrid">
+        
+    </div>
+
+    <script>
+        // Store all orders data for filtering
+        let allOrders = [];
+        let currentSearchTerm = '';
+
+        // ===== FIXED calculateTotal (from previous fix) =====
+        // In ثبت فاکتور.html, `price` is stored as the LINE TOTAL (qty × unit price).
+        // So we must NOT multiply by quantity again — we just sum the stored prices.
+        function calculateTotal(items) {
+            let total = 0;
+            if (items && Array.isArray(items)) {
+                items.forEach(item => {
+                    const price = parseInt(item.price) || 0;
+                    total += price;
+                });
+            }
+            return total;
+        }
+
+        // Helper to show the per-unit price on each line (stored price ÷ qty)
+        function getUnitPrice(item) {
+            const lineTotal = parseInt(item.price) || 0;
+            const qty = parseInt(item.quantity) || 1;
+            if (qty <= 0) return lineTotal;
+            return Math.round(lineTotal / qty);
+        }
+
+        // Function to render factors with optional search filter
+        function renderFactors(searchTerm = '') {
+            const grid = document.getElementById('factorGrid');
+            const countDisplay = document.getElementById('factorCount');
+            const updateDisplay = document.getElementById('lastUpdate');
+
+            const saveddata = localStorage.getItem('sharedDatas');
+
+            if (!saveddata) {
+                grid.innerHTML = `
+                    <div class="no-data">
+                        <span>📭</span>
+                        هیچ فاکتوری ذخیره نشده
+                    </div>
+                `;
+                countDisplay.textContent = '0';
+                updateDisplay.textContent = '-';
+                allOrders = [];
+                return;
+            }
+
+            try {
+                const orders = JSON.parse(saveddata);
+
+                if (!Array.isArray(orders) || orders.length === 0) {
+                    grid.innerHTML = `
+                        <div class="no-data">
+                            <span>📭</span>
+                            هیچ فاکتوری ذخیره نشده است
+                        </div>
+                    `;
+                    countDisplay.textContent = '0';
+                    updateDisplay.textContent = '-';
+                    allOrders = [];
+                    return;
+                }
+
+                allOrders = orders;
+
+                // ===== FILTER (delivered items still match search) =====
+                let filteredOrders = orders;
+                if (searchTerm && searchTerm.trim() !== '') {
+                    const term = searchTerm.trim().toLowerCase();
+                    filteredOrders = orders.filter(order => {
+                        const name = (order.customername || '').toLowerCase();
+                        const phone = (order.customerPhone || '').toLowerCase();
+                        return name.includes(term) || phone.includes(term);
+                    });
+                }
+
+                // ===== SORT: undelivered first, delivered at the end =====
+                // Use a stable sort based on the `delivered` flag.
+                filteredOrders = filteredOrders.slice().sort((a, b) => {
+                    const aDel = a.delivered ? 1 : 0;
+                    const bDel = b.delivered ? 1 : 0;
+                    if (aDel !== bDel) return aDel - bDel;   // undelivered (0) first
+                    // keep original relative order (newest first if you want)
+                    return (b.orderid || 0) - (a.orderid || 0);
+                });
+
+                // Count display: undelivered / total
+                const totalCount = orders.length;
+                const deliveredCount = orders.filter(o => o.delivered).length;
+                const undeliveredCount = totalCount - deliveredCount;
+
+                if (searchTerm && searchTerm.trim() !== '') {
+                    countDisplay.textContent = `${filteredOrders.length} از ${totalCount} (${deliveredCount} تحویل شده)`;
+                } else {
+                    countDisplay.textContent = `${undeliveredCount} در انتظار / ${totalCount} کل (${deliveredCount} تحویل شده)`;
+                }
+
+                updateDisplay.textContent = new Date().toLocaleString('fa-IR');
+
+                if (filteredOrders.length === 0) {
+                    grid.innerHTML = `
+                        <div class="no-data">
+                            <span>🔍</span>
+                            هیچ فاکتوری با این جستجو یافت نشد
+                        </div>
+                    `;
+                    return;
+                }
+
+                grid.innerHTML = '';
+
+                filteredOrders.forEach((order, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'factor-card' + (order.delivered ? ' delivered' : '');
+                    card.dataset.orderId = order.orderid || Date.now() + index;
+
+                    const totalprice = calculateTotal(order.items);
+
+                    let itemsHTML = '';
+                    if (order.items && Array.isArray(order.items)) {
+                        order.items.forEach(item => {
+                            const extraHTML = item.extra ? `<span class="item-extra">(${item.extra})</span>` : '';
+                            const quantity = item.quantity || 1;
+                            const unitPrice = getUnitPrice(item);
+                            itemsHTML += `
+                                <li>
+                                    <span class="item-name">${item.name || 'نامشخص'}</span>
+                                    <span>
+                                        <span class="item-qty">${quantity} ×</span>
+                                        <span class="item-price">${unitPrice.toLocaleString()}</span>
+                                        ${extraHTML}
+                                    </span>
+                                </li>
+                            `;
+                        });
+                    }
+
+                    const customerName = order.customername || 'مشتری';
+                    const customerPhone = order.customerPhone || 'ندارد';
+                    const customerDesc = order.customerDesc || 'ندارد';
+                    const timestamp = order.timestamp || new Date(order.orderid).toLocaleString('fa-IR');
+                    const orderid = order.orderid || Date.now();
+
+                    card.innerHTML = ` 
+                        <div class="factor-header">
+                            <div class="customer-name">👤 ${customerName}</div>
+                            <div class="customer-phone">📞 ${customerPhone}</div>
+                            ${customerDesc !== 'ندارد' ? `<div class="customer-desc">📝 ${customerDesc}</div>` : ''}
+                            <div class="order-id">#${orderid.toString().slice(-6)}</div>
+                        </div>
+                        <ul class="factor-items">
+                            ${itemsHTML || '<li style="color:#999;">بدون آیتم</li>'}
+                        </ul>
+                        <div class="factor-footer">
+                            <button class="subbtn ${order.delivered ? 'delivered' : ''}"
+                                    data-order-id="${orderid}"
+                                    title="${order.delivered ? 'لغو تحویل' : 'علامت‌گذاری به عنوان تحویل داده شده'}"></button>
+                            <span class="total-price">💰 ${totalprice.toLocaleString()} تومان</span>
+                            <span class="timestamp">${timestamp}</span>
+                        </div>
+                    `;
+
+                    grid.appendChild(card);
+                });
+
+                // Attach event listeners
+                document.querySelectorAll('.subbtn').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const orderId = this.dataset.orderId;
+                        toggleDeliverOrder(orderId);
+                    });
+                });
+
+            } catch (e) {
+                console.error('Error parsing data:', e);
+                grid.innerHTML = `
+                    <div class="no-data">
+                        <span>⚠️</span>
+                        خطا در خواندن داده‌ها
+                    </div>
+                `;
+                countDisplay.textContent = '0';
+                updateDisplay.textContent = '-';
+                allOrders = [];
+            }
+        }
+
+        // ===== TOGGLE delivery status (no deletion!) =====
+        function toggleDeliverOrder(orderId) {
+            if (!orderId) return;
+
+            const saveddata = localStorage.getItem('sharedDatas');
+            if (!saveddata) return;
+
+            try {
+                let orders = JSON.parse(saveddata);
+                if (!Array.isArray(orders)) return;
+
+                const orderIndex = orders.findIndex(order => {
+                    const id = order.orderid || Date.now();
+                    return id.toString() === orderId.toString();
+                });
+
+                if (orderIndex === -1) {
+                    alert('فاکتور مورد نظر یافت نشد!');
+                    return;
+                }
+
+                const order = orders[orderIndex];
+                const becomingDelivered = !order.delivered;
+
+                // If marking as delivered, just do it (no confirm — it's reversible now)
+                // If undoing delivery, also just do it.
+                order.delivered = becomingDelivered;
+                order.deliveredAt = becomingDelivered ? new Date().toLocaleString('fa-IR') : null;
+
+                localStorage.setItem('sharedDatas', JSON.stringify(orders));
+
+                // Re-render (preserving search + sort keeps delivered at bottom)
+                renderFactors(currentSearchTerm);
+
+            } catch (e) {
+                console.error('Error toggling delivery:', e);
+                alert('خطا در تغییر وضعیت تحویل!');
+            }
+        }
+
+        function handleSearch(e) {
+            currentSearchTerm = e.target.value;
+            renderFactors(currentSearchTerm);
+        }
+
+        document.getElementById('clearAllBtn').addEventListener('click', function() {
+            if (confirm('آیا مطمئن هستید که می‌خواهید همه فاکتورها را حذف کنید؟\n(این کار قابل بازگشت نیست)')) {
+                localStorage.removeItem('sharedDatas');
+                currentSearchTerm = '';
+                document.getElementById('searchbar').value = '';
+                renderFactors('');
+                alert('همه فاکتورها حذف شدند');
+            }
+        });
+
+        document.getElementById('searchbar').addEventListener('input', handleSearch);
+
+        window.onload = function() {
+            renderFactors('');
+        };
+
+        window.addEventListener('focus', function() {
+            const searchTerm = document.getElementById('searchbar').value || '';
+            currentSearchTerm = searchTerm;
+            renderFactors(searchTerm);
+        });
+    </script>
+</body>
+</html>

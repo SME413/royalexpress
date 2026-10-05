@@ -1,0 +1,353 @@
+:root{
+    --green: #00594e;
+    --silk: #fff6e4;
+    --black: #111808;
+    --coloni: #fff0ba;
+    --peach: #ff7654;
+    --mint: #6beeb1;
+}
+body{
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+    "nav nav"  
+    "sidebar main";
+}
+
+nav{
+    grid-area: nav;
+    background: var(--green);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--silk);
+    border-bottom: 3px solid var(--green);
+}
+
+a{
+    text-decoration: none;
+    color:var(--silk);
+}
+
+aside a{
+    font-size: 1.1rem;
+    padding: 4px 6px;
+    color: var(--black);
+    
+}
+
+aside{
+    grid-area: sidebar;
+    background: var(--silk);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    border-left: 4px solid var(--green);
+}
+
+main{
+    background: var(--coloni);
+}
+
+main .container{
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+    "form output";
+}
+
+main .container form{
+    grid-area: form;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 10px 12px;
+    border-left: 4px solid var(--green);
+}
+
+main .container form .form-group{
+    width: 50%;
+    height: auto;
+    /* border: 2px solid blue; */
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    flex-direction: column;
+    gap: 5px;
+}
+
+main .container form .form-group label{
+    font-size: 1.2rem;
+}
+main .container form .form-group input, textarea, #delivery-time{
+    width: 100%;
+    height: 30px;
+    font-size: 1.2rem;
+    outline: none;
+    border: 2px dashed var(--green);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--black);
+    padding-right: 10px;
+    transition: all .5s ease;
+}
+
+main .container form .form-group #delivery-time:focus,
+main .container form .form-group #delivery-time:valid{
+    border: 2px solid var(--green);
+    box-shadow: 0 0 9px var(--green), 0 0 12px var(--green);
+}
+
+main .container form .form-group input:focus,
+main .container form .form-group input:valid,
+main .container form .form-group textarea:focus{
+    border: 2px solid var(--green);
+    box-shadow: 0 0 9px var(--green), 0 0 12px var(--green);
+}
+
+main .container .checkbox-group{
+    width: 50%;
+    padding: 10xp;
+    margin-top: 40px;
+    display: flex;
+    gap: 15px;
+    flex-direction: column;
+}
+
+main .container form .checkbox-group input{
+    width: 100%;
+    height: 30px;
+    font-size: 1.1rem;
+    outline: none;
+    border: 2px dashed var(--green);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--black);
+    padding-right: 10px;
+    transition: all 0.5s ease;
+}
+
+main .container form .checkbox-group input:focus{
+    border: 2px solid var(--green);
+    box-shadow: 0 0 9px var(--green), 0 0 12px var(--green);
+}
+
+.container .outcome{
+    text-align: center;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.orderlist{
+    list-style-type: none;
+    width: 95%;
+    padding: 0; 
+}
+
+.orderlist li{
+    background: #fff;
+    border-right: 5px solid #28a745;
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.btn-container{
+    width: 80%;
+    padding: 10px;
+    /* border: 2px solid var(--green); */
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.btn-container .delete-btn{
+    width: 40px; 
+    height: 40px;
+    border-radius: 50%;
+    font-weight: 600;
+    background: var(--peach);
+    color: var(--black);
+    font-size: 22px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-container .edit-btn{
+    width: 40px; 
+    height: 40px;
+    border-radius: 50%;
+    font-weight: 600;
+    background: var(--mint);
+    color: var(--black);
+    font-size: 22px;
+    outline: none;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-container .save-btn{
+    width: 40px;
+    height: 40px;   
+    text-align: center;
+    outline: none;
+    border: none;
+    background: var(--green);
+    color: var(--coloni);
+    font-size: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.btn-container .print-btn{
+    padding: 8px 55px;
+    text-align: center;
+    outline: none;
+    border: none;
+    background: var(--green);
+    color: var(--coloni);
+    font-size: 18px;
+    border-radius: 7px;
+    corner-shape: scoop;
+    cursor: pointer;
+}
+
+.orderlist li .checkbox{
+    text-align: center;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    border-radius: 50%;
+    border: none;
+    outline: none;
+    background-color: var(--peach);
+}
+
+.orderlist li .checkbox::before{
+    content: '\2718';
+    color: var(--black);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+}
+
+.orderlist li .editcheckbox{
+    text-align: center;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    border-radius: 50%;
+    border: none;
+    outline: none;
+    background-color: var(--mint);
+}
+.orderlist li .editcheckbox::before{
+    content: '\2713';
+    color: var(--black);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1rem;
+}
+
+.total-price-container{
+    background: linear-gradient(135deg, var(--green), #007a6b);
+    padding: 15px 20px;
+    border-radius: 15px;
+    width: 80%;
+    display: none;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 10px rgba(0, 89, 78, 0.3);
+}
+.total-price-container .total-label {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.total-price-container .total-amount {
+    font-size: 1.5rem;
+    color: var(--coloni);
+    letter-spacing: 1px;
+}
+.total-price-container .total-amount span {
+    font-size: 1rem;
+    color: var(--mint);
+}
+
+.outcome .title{
+    display: none;
+}
+
+.orderlist li .checkbox:focus,
+.orderlist li .editcheckbox:focus {
+    outline: 3px solid var(--green);
+    outline-offset: 2px;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+
+@media print {
+    /* Hide everything by default */
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Show the outcome container and its children */
+    .outcome, .outcome * {
+        visibility: visible;
+    }
+    
+    /* Position the outcome for A6 printing */
+    .outcome {
+        position: absolute;
+        left: 25%;
+        top: 0;
+        width: 105mm;
+        height: 148mm;
+        padding: 10mm;
+        box-sizing: border-box;
+        background: white;
+        margin: 0;
+    }
+
+    .outcome .title{
+        display: flex;
+    }
+    
+    /* Hide navigation, sidebar, and input form */
+    nav, aside, .input-container, .container form {
+        display: none !important;
+    }
+    
+    /* Hide buttons */
+    .btn-container {
+        display: none !important;
+    }
+    
+    @page {
+        size: A6;
+        margin: 0;
+    }
+}
